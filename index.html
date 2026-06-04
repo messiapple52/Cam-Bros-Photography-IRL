@@ -3,6 +3,9 @@
 <head>
 <title>Cam Bros Photography</title>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body{
   margin:0;
@@ -13,12 +16,12 @@ body{
 }
 
 header{
-  padding:50px 20px;
+  padding:40px 20px;
 }
 
 button{
-  padding:12px 18px;
-  margin:8px;
+  padding:12px 16px;
+  margin:6px;
   border:none;
   border-radius:10px;
   cursor:pointer;
@@ -30,7 +33,7 @@ button{
 
 section{
   display:none;
-  padding:30px;
+  padding:20px;
 }
 
 .card{
@@ -48,6 +51,12 @@ input{
   border-radius:8px;
   border:none;
 }
+
+img{
+  width:120px;
+  margin:5px;
+  border-radius:8px;
+}
 </style>
 </head>
 
@@ -55,35 +64,36 @@ input{
 
 <header>
   <h1>Cam Bros Photography</h1>
-  <p>Sports • Events • Moments</p>
 
   <button class="primary" onclick="show('gallery')">Find My Photos</button>
-  <button class="dark" onclick="show('book')">Book a Shoot</button>
+  <button class="dark" onclick="show('book')">Book</button>
   <button class="dark" onclick="show('admin')">Admin</button>
 </header>
 
 <!-- GALLERY -->
 <section id="gallery">
   <h2>Find My Photos</h2>
+
   <div class="card">
     <input id="code" placeholder="Enter Code">
-    <br>
-    <button class="primary" onclick="openGallery()">Open</button>
-    <div id="galleryView"></div>
+    <button class="primary" onclick="loadGallery()">Open</button>
+    <div id="photos"></div>
   </div>
+
   <button onclick="back()">Back</button>
 </section>
 
 <!-- BOOKING -->
 <section id="book">
   <h2>Book a Shoot</h2>
+
   <div class="card">
     <input id="bname" placeholder="Name">
     <input id="bemail" placeholder="Email">
     <input id="bphone" placeholder="Phone">
     <button class="primary" onclick="book()">Submit</button>
-    <p id="bookMsg"></p>
   </div>
+
   <button onclick="back()">Back</button>
 </section>
 
@@ -92,24 +102,27 @@ input{
   <h2>Admin Panel</h2>
 
   <div class="card" id="loginBox">
-    <input id="pass" type="password" placeholder="Enter Password">
+    <input id="pass" type="password" placeholder="Password">
     <button class="primary" onclick="login()">Login</button>
   </div>
 
   <div class="card" id="panel" style="display:none">
+
     <h3>Create Gallery Code</h3>
-    <input id="newCode" placeholder="New Code">
+    <input id="newCode" placeholder="Code">
     <button class="primary" onclick="createCode()">Create</button>
 
-    <h3>Upload Photo (simulated)</h3>
-    <input id="photoURL" placeholder="Image URL">
+    <h3>Upload Photo</h3>
+    <input id="file" type="file">
+    <input id="galleryCode" placeholder="Gallery Code">
     <button class="primary" onclick="upload()">Upload</button>
 
     <h3>Events</h3>
     <input id="event" placeholder="Event Name">
-    <button class="primary" onclick="addEvent()">Add Event</button>
+    <button class="primary" onclick="addEvent()">Add</button>
 
-    <div id="events"></div>
+    <div id="eventList"></div>
+
   </div>
 
   <button onclick="back()">Back</button>
@@ -117,9 +130,16 @@ input{
 
 <script>
 
-let currentCode = "";
-let eventsList = [];
+/* 🔑 SUPABASE CONNECT */
+const supabaseUrl = "https://rldroutcofersmaxvlkq.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhueHB2eWtlenVpZ2Roa212ZHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjMxMzYsImV4cCI6MjA5MzQzOTEzNn0.hVluf7TVg719lkrLbRpgeenv698dDZTzaIH7o4hQt64";
 
+const supabase = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+/* NAV */
 function show(id){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
   document.getElementById(id).style.display="block";
@@ -129,33 +149,7 @@ function back(){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
 }
 
-/* GALLERY */
-function openGallery(){
-  const code = document.getElementById("code").value;
-  const data = JSON.parse(localStorage.getItem(code));
-
-  const view = document.getElementById("galleryView");
-  view.innerHTML = "";
-
-  if(!data){
-    view.innerHTML = "No photos found for this code.";
-    return;
-  }
-
-  data.forEach(img=>{
-    let i = document.createElement("p");
-    i.innerHTML = "📸 " + img;
-    view.appendChild(i);
-  });
-}
-
-/* BOOKING */
-function book(){
-  document.getElementById("bookMsg").innerText =
-  "Booking submitted (we will contact you)";
-}
-
-/* ADMIN LOGIN */
+/* LOGIN */
 function login(){
   if(document.getElementById("pass").value === "CamBros2026"){
     document.getElementById("loginBox").style.display="none";
@@ -165,38 +159,89 @@ function login(){
   }
 }
 
-/* CREATE CODE */
-function createCode(){
+/* CREATE GALLERY CODE */
+async function createCode(){
   const code = document.getElementById("newCode").value;
-  localStorage.setItem(code, JSON.stringify([]));
-  currentCode = code;
+
+  await supabase.from("galleries").insert([{ code }]);
+
   alert("Gallery created: " + code);
 }
 
-/* UPLOAD */
-function upload(){
-  const url = document.getElementById("photoURL").value;
+/* UPLOAD PHOTO */
+async function upload(){
+  const file = document.getElementById("file").files[0];
+  const code = document.getElementById("galleryCode").value;
 
-  if(!currentCode){
-    alert("Create or select a code first");
+  if(!file || !code){
+    alert("Missing file or code");
     return;
   }
 
-  let data = JSON.parse(localStorage.getItem(currentCode)) || [];
-  data.push(url);
+  const fileName = Date.now() + file.name;
 
-  localStorage.setItem(currentCode, JSON.stringify(data));
+  // upload to storage
+  const { data, error } = await supabase
+    .storage
+    .from("galleries")
+    .upload(fileName, file);
 
-  alert("Photo added");
+  if(error){
+    alert("Upload failed");
+    return;
+  }
+
+  const url = supabase.storage
+    .from("galleries")
+    .getPublicUrl(fileName).data.publicUrl;
+
+  // save to database
+  await supabase.from("photos").insert([{
+    gallery_code: code,
+    url: url
+  }]);
+
+  alert("Photo uploaded");
+}
+
+/* LOAD GALLERY */
+async function loadGallery(){
+  const code = document.getElementById("code").value;
+
+  const { data } = await supabase
+    .from("photos")
+    .select("*")
+    .eq("gallery_code", code);
+
+  const box = document.getElementById("photos");
+  box.innerHTML = "";
+
+  if(!data || data.length === 0){
+    box.innerHTML = "No photos found";
+    return;
+  }
+
+  data.forEach(p=>{
+    let img = document.createElement("img");
+    img.src = p.url;
+    box.appendChild(img);
+  });
 }
 
 /* EVENTS */
+let events = [];
+
 function addEvent(){
   const e = document.getElementById("event").value;
-  eventsList.push(e);
+  events.push(e);
 
-  document.getElementById("events").innerHTML =
-  eventsList.map(x=>"📅 " + x).join("<br>");
+  document.getElementById("eventList").innerHTML =
+    events.map(x=>"📅 "+x).join("<br>");
+}
+
+/* BOOKING */
+function book(){
+  alert("Booking sent (we will contact you)");
 }
 
 </script>
