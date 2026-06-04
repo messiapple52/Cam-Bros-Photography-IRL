@@ -3,7 +3,6 @@
 <head>
 <title>Cam Bros Photography</title>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -16,7 +15,7 @@ body{
 }
 
 header{
-  padding:40px 20px;
+  padding:40px;
 }
 
 button{
@@ -31,10 +30,7 @@ button{
 .primary{background:white;color:black;}
 .dark{background:#333;color:white;}
 
-section{
-  display:none;
-  padding:20px;
-}
+section{display:none;padding:20px;}
 
 .card{
   background:#1c1c1c;
@@ -48,91 +44,78 @@ input{
   width:90%;
   padding:10px;
   margin:6px;
-  border-radius:8px;
-  border:none;
 }
-
-img{
-  width:120px;
-  margin:5px;
-  border-radius:8px;
-}
+img{width:120px;margin:5px;border-radius:8px;}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>Cam Bros Photography</h1>
+<h1>Cam Bros Photography</h1>
 
-  <button class="primary" onclick="show('gallery')">Find My Photos</button>
-  <button class="dark" onclick="show('book')">Book</button>
-  <button class="dark" onclick="show('admin')">Admin</button>
+<button class="primary" onclick="show('gallery')">Find My Photos</button>
+<button class="dark" onclick="show('book')">Book</button>
+<button class="dark" onclick="show('admin')">Admin</button>
 </header>
 
 <!-- GALLERY -->
 <section id="gallery">
-  <h2>Find My Photos</h2>
+<h2>Find My Photos</h2>
 
-  <div class="card">
-    <input id="code" placeholder="Enter Code">
-    <button class="primary" onclick="loadGallery()">Open</button>
-    <div id="photos"></div>
-  </div>
+<div class="card">
+<input id="code" placeholder="Enter Code">
+<button class="primary" onclick="loadGallery()">Open</button>
+<div id="photos"></div>
+</div>
 
-  <button onclick="back()">Back</button>
+<button onclick="back()">Back</button>
 </section>
 
-<!-- BOOKING -->
+<!-- BOOK -->
 <section id="book">
-  <h2>Book a Shoot</h2>
+<h2>Book a Shoot</h2>
 
-  <div class="card">
-    <input id="bname" placeholder="Name">
-    <input id="bemail" placeholder="Email">
-    <input id="bphone" placeholder="Phone">
-    <button class="primary" onclick="book()">Submit</button>
-  </div>
+<div class="card">
+<input placeholder="Name">
+<input placeholder="Email">
+<input placeholder="Phone">
+<button class="primary">Submit</button>
+</div>
 
-  <button onclick="back()">Back</button>
+<button onclick="back()">Back</button>
 </section>
 
 <!-- ADMIN -->
 <section id="admin">
-  <h2>Admin Panel</h2>
+<h2>Admin Panel</h2>
 
-  <div class="card" id="loginBox">
-    <input id="pass" type="password" placeholder="Password">
-    <button class="primary" onclick="login()">Login</button>
-  </div>
+<div class="card" id="loginBox">
+<input id="pass" type="password" placeholder="Password">
+<button class="primary" onclick="login()">Login</button>
+</div>
 
-  <div class="card" id="panel" style="display:none">
+<div class="card" id="panel" style="display:none">
 
-    <h3>Create Gallery Code</h3>
-    <input id="newCode" placeholder="Code">
-    <button class="primary" onclick="createCode()">Create</button>
+<h3>Create Gallery Code</h3>
+<input id="newCode" placeholder="Code">
+<button class="primary" onclick="createCode()">Create</button>
 
-    <h3>Upload Photo</h3>
-    <input id="file" type="file">
-    <input id="galleryCode" placeholder="Gallery Code">
-    <button class="primary" onclick="upload()">Upload</button>
+<h3>Upload Photo</h3>
+<input type="file" id="file">
+<input id="galleryCode" placeholder="Gallery Code">
+<button class="primary" onclick="upload()">Upload</button>
 
-    <h3>Events</h3>
-    <input id="event" placeholder="Event Name">
-    <button class="primary" onclick="addEvent()">Add</button>
+</div>
 
-    <div id="eventList"></div>
-
-  </div>
-
-  <button onclick="back()">Back</button>
+<button onclick="back()">Back</button>
 </section>
 
 <script>
 
-/* 🔑 SUPABASE CONNECT */
-const supabaseUrl = "https://rldroutcofersmaxvlkq.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhueHB2eWtlenVpZ2Roa212ZHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjMxMzYsImV4cCI6MjA5MzQzOTEzNn0.hVluf7TVg719lkrLbRpgeenv698dDZTzaIH7o4hQt64";
+/* 🔥 SUPABASE SETUP */
+const supabaseUrl = "https://xnxpvykezuidghkmvdvk.supabase.co";
+const supabaseKey = "PASTE_YOUR_ANON_KEY_HERE";
 
 const supabase = window.supabase.createClient(
   supabaseUrl,
@@ -154,21 +137,19 @@ function login(){
   if(document.getElementById("pass").value === "CamBros2026"){
     document.getElementById("loginBox").style.display="none";
     document.getElementById("panel").style.display="block";
-  } else {
-    alert("Wrong password");
-  }
+  } else alert("Wrong password");
 }
 
-/* CREATE GALLERY CODE */
+/* CREATE CODE */
 async function createCode(){
   const code = document.getElementById("newCode").value;
 
   await supabase.from("galleries").insert([{ code }]);
 
-  alert("Gallery created: " + code);
+  alert("Created: " + code);
 }
 
-/* UPLOAD PHOTO */
+/* UPLOAD */
 async function upload(){
   const file = document.getElementById("file").files[0];
   const code = document.getElementById("galleryCode").value;
@@ -180,9 +161,7 @@ async function upload(){
 
   const fileName = Date.now() + file.name;
 
-  // upload to storage
-  const { data, error } = await supabase
-    .storage
+  const { error } = await supabase.storage
     .from("galleries")
     .upload(fileName, file);
 
@@ -195,13 +174,12 @@ async function upload(){
     .from("galleries")
     .getPublicUrl(fileName).data.publicUrl;
 
-  // save to database
   await supabase.from("photos").insert([{
     gallery_code: code,
     url: url
   }]);
 
-  alert("Photo uploaded");
+  alert("Uploaded!");
 }
 
 /* LOAD GALLERY */
@@ -226,22 +204,6 @@ async function loadGallery(){
     img.src = p.url;
     box.appendChild(img);
   });
-}
-
-/* EVENTS */
-let events = [];
-
-function addEvent(){
-  const e = document.getElementById("event").value;
-  events.push(e);
-
-  document.getElementById("eventList").innerHTML =
-    events.map(x=>"📅 "+x).join("<br>");
-}
-
-/* BOOKING */
-function book(){
-  alert("Booking sent (we will contact you)");
 }
 
 </script>
