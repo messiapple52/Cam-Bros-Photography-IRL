@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Cam Bros Photography</title>
+
 <style>
 body{
   margin:0;
@@ -12,31 +13,24 @@ body{
 }
 
 header{
-  padding:60px 20px;
+  padding:50px 20px;
 }
 
 button{
-  padding:15px;
-  margin:10px;
+  padding:12px 18px;
+  margin:8px;
   border:none;
   border-radius:10px;
   cursor:pointer;
-  font-size:16px;
+  font-weight:bold;
 }
 
-.btn{
-  background:white;
-  color:black;
-}
-
-.dark{
-  background:#333;
-  color:white;
-}
+.primary{background:white;color:black;}
+.dark{background:#333;color:white;}
 
 section{
   display:none;
-  padding:40px;
+  padding:30px;
 }
 
 .card{
@@ -46,53 +40,86 @@ section{
   max-width:500px;
   border-radius:10px;
 }
+
+input{
+  width:90%;
+  padding:10px;
+  margin:6px;
+  border-radius:8px;
+  border:none;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>Cam Bros Photography</h1>
-<p>Sports • Events • Moments</p>
+  <h1>Cam Bros Photography</h1>
+  <p>Sports • Events • Moments</p>
 
-<button class="btn" onclick="show('find')">Find My Photos</button>
-<button class="dark" onclick="show('book')">Book a Shoot</button>
-<button class="dark" onclick="show('admin')">Admin</button>
+  <button class="primary" onclick="show('gallery')">Find My Photos</button>
+  <button class="dark" onclick="show('book')">Book a Shoot</button>
+  <button class="dark" onclick="show('admin')">Admin</button>
 </header>
 
-<section id="find">
-<h2>Find My Photos</h2>
-<div class="card">
-<input placeholder="Enter Code">
-<br><br>
-<button class="btn">Open</button>
-</div>
-<button onclick="back()">Back</button>
+<!-- GALLERY -->
+<section id="gallery">
+  <h2>Find My Photos</h2>
+  <div class="card">
+    <input id="code" placeholder="Enter Code">
+    <br>
+    <button class="primary" onclick="openGallery()">Open</button>
+    <div id="galleryView"></div>
+  </div>
+  <button onclick="back()">Back</button>
 </section>
 
+<!-- BOOKING -->
 <section id="book">
-<h2>Book a Shoot</h2>
-<div class="card">
-<input placeholder="Name">
-<input placeholder="Email">
-<input placeholder="Phone">
-<br><br>
-<button class="btn">Submit</button>
-</div>
-<button onclick="back()">Back</button>
+  <h2>Book a Shoot</h2>
+  <div class="card">
+    <input id="bname" placeholder="Name">
+    <input id="bemail" placeholder="Email">
+    <input id="bphone" placeholder="Phone">
+    <button class="primary" onclick="book()">Submit</button>
+    <p id="bookMsg"></p>
+  </div>
+  <button onclick="back()">Back</button>
 </section>
 
+<!-- ADMIN -->
 <section id="admin">
-<h2>Admin</h2>
-<div class="card">
-<input type="password" placeholder="Password">
-<br><br>
-<button class="btn">Login</button>
-</div>
-<button onclick="back()">Back</button>
+  <h2>Admin Panel</h2>
+
+  <div class="card" id="loginBox">
+    <input id="pass" type="password" placeholder="Enter Password">
+    <button class="primary" onclick="login()">Login</button>
+  </div>
+
+  <div class="card" id="panel" style="display:none">
+    <h3>Create Gallery Code</h3>
+    <input id="newCode" placeholder="New Code">
+    <button class="primary" onclick="createCode()">Create</button>
+
+    <h3>Upload Photo (simulated)</h3>
+    <input id="photoURL" placeholder="Image URL">
+    <button class="primary" onclick="upload()">Upload</button>
+
+    <h3>Events</h3>
+    <input id="event" placeholder="Event Name">
+    <button class="primary" onclick="addEvent()">Add Event</button>
+
+    <div id="events"></div>
+  </div>
+
+  <button onclick="back()">Back</button>
 </section>
 
 <script>
+
+let currentCode = "";
+let eventsList = [];
+
 function show(id){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
   document.getElementById(id).style.display="block";
@@ -101,6 +128,77 @@ function show(id){
 function back(){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
 }
+
+/* GALLERY */
+function openGallery(){
+  const code = document.getElementById("code").value;
+  const data = JSON.parse(localStorage.getItem(code));
+
+  const view = document.getElementById("galleryView");
+  view.innerHTML = "";
+
+  if(!data){
+    view.innerHTML = "No photos found for this code.";
+    return;
+  }
+
+  data.forEach(img=>{
+    let i = document.createElement("p");
+    i.innerHTML = "📸 " + img;
+    view.appendChild(i);
+  });
+}
+
+/* BOOKING */
+function book(){
+  document.getElementById("bookMsg").innerText =
+  "Booking submitted (we will contact you)";
+}
+
+/* ADMIN LOGIN */
+function login(){
+  if(document.getElementById("pass").value === "CamBros2026"){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("panel").style.display="block";
+  } else {
+    alert("Wrong password");
+  }
+}
+
+/* CREATE CODE */
+function createCode(){
+  const code = document.getElementById("newCode").value;
+  localStorage.setItem(code, JSON.stringify([]));
+  currentCode = code;
+  alert("Gallery created: " + code);
+}
+
+/* UPLOAD */
+function upload(){
+  const url = document.getElementById("photoURL").value;
+
+  if(!currentCode){
+    alert("Create or select a code first");
+    return;
+  }
+
+  let data = JSON.parse(localStorage.getItem(currentCode)) || [];
+  data.push(url);
+
+  localStorage.setItem(currentCode, JSON.stringify(data));
+
+  alert("Photo added");
+}
+
+/* EVENTS */
+function addEvent(){
+  const e = document.getElementById("event").value;
+  eventsList.push(e);
+
+  document.getElementById("events").innerHTML =
+  eventsList.map(x=>"📅 " + x).join("<br>");
+}
+
 </script>
 
 </body>
