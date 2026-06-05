@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,35 +9,35 @@
 body{
     margin:0;
     font-family:Arial,sans-serif;
-    background:#111;
+    background:#0b0b0b;
     color:white;
 }
 
+/* HERO */
 .hero{
     text-align:center;
     padding:80px 20px;
+    background:linear-gradient(135deg,#000,#1a1a1a);
 }
 
-button{
-    padding:15px 25px;
-    margin:8px;
+.hero h1{
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.btn{
+    padding:14px 18px;
+    margin:6px;
     border:none;
     border-radius:10px;
     cursor:pointer;
     font-weight:bold;
 }
 
-.primary{
-    background:white;
-    color:black;
-}
+.primary{background:white;color:black;}
+.dark{background:#333;color:white;}
 
-.dark{
-    background:#333;
-    color:white;
-}
-
-.page{
+section{
     display:none;
     padding:30px;
     max-width:900px;
@@ -45,89 +45,206 @@ button{
 }
 
 .card{
-    background:#1e1e1e;
+    background:#1c1c1c;
     padding:20px;
     border-radius:12px;
-    margin-bottom:20px;
+    margin-bottom:15px;
 }
+
+input,textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:8px;
+    border:none;
+}
+
+img{
+    width:120px;
+    margin:5px;
+    border-radius:8px;
+}
+
+/* ADMIN PANEL */
+#adminPanel{display:none;}
 </style>
 </head>
 
 <body>
 
-<div id="home" class="hero">
+<!-- HOME -->
+<div class="hero" id="home">
     <h1>Cam Bros Photography</h1>
-    <p>Sports • Events • Photography</p>
+    <p>Sports • Events • Moments</p>
 
-    <button class="primary" onclick="showPage('photos')">Our Photos</button>
-    <button class="dark" onclick="showPage('events')">Upcoming Events</button>
-    <button class="dark" onclick="showPage('find')">Find My Photos</button>
-    <button class="dark" onclick="showPage('book')">Book a Shoot</button>
-    <button class="primary" onclick="showPage('admin')">Admin</button>
+    <button class="btn primary" onclick="openPage('gallery')">Find My Photos</button>
+    <button class="btn dark" onclick="openPage('photos')">Our Photos</button>
+    <button class="btn dark" onclick="openPage('events')">Upcoming Events</button>
+    <button class="btn dark" onclick="openPage('book')">Book a Shoot</button>
+    <button class="btn primary" onclick="openPage('admin')">Admin</button>
 </div>
 
-<div id="photos" class="page">
-    <div class="card">
-        <h2>Our Photos</h2>
-        <p>Add your showcase photos here later.</p>
-    </div>
-    <button onclick="goHome()">Back</button>
+<!-- GALLERY -->
+<section id="gallery">
+<h2>Find My Photos</h2>
+
+<div class="card">
+<input id="code" placeholder="Enter Gallery Code">
+<button class="btn primary" onclick="loadGallery()">Open</button>
+<div id="galleryView"></div>
 </div>
 
-<div id="events" class="page">
-    <div class="card">
-        <h2>Upcoming Events</h2>
-        <p>No events added yet.</p>
-    </div>
-    <button onclick="goHome()">Back</button>
+<button onclick="back()">Back</button>
+</section>
+
+<!-- PHOTOS -->
+<section id="photos">
+<h2>Our Photos</h2>
+<div class="card">
+<p>Portfolio coming soon (admin controls this).</p>
+</div>
+<button onclick="back()">Back</button>
+</section>
+
+<!-- EVENTS -->
+<section id="events">
+<h2>Upcoming Events</h2>
+<div class="card">
+<ul id="eventList"></ul>
+</div>
+<button onclick="back()">Back</button>
+</section>
+
+<!-- BOOK -->
+<section id="book">
+<h2>Book a Shoot</h2>
+
+<div class="card">
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<input id="phone" placeholder="Phone">
+<textarea id="details" placeholder="Event details"></textarea>
+<button class="btn primary" onclick="submitBooking()">Submit</button>
+<p id="bookMsg"></p>
 </div>
 
-<div id="find" class="page">
-    <div class="card">
-        <h2>Find My Photos</h2>
-        <input placeholder="Enter Code">
-    </div>
-    <button onclick="goHome()">Back</button>
+<button onclick="back()">Back</button>
+</section>
+
+<!-- ADMIN -->
+<section id="admin">
+<h2>Admin Panel</h2>
+
+<div class="card" id="loginBox">
+<input id="pass" type="password" placeholder="Enter Password">
+<button class="btn primary" onclick="login()">Login</button>
 </div>
 
-<div id="book" class="page">
-    <div class="card">
-        <h2>Book a Shoot</h2>
-        <input placeholder="Name"><br><br>
-        <input placeholder="Email"><br><br>
-        <input placeholder="Phone"><br><br>
-        <button>Submit</button>
-    </div>
-    <button onclick="goHome()">Back</button>
+<div class="card" id="adminPanel">
+<h3>Create Gallery Code</h3>
+<input id="newCode" placeholder="New Code">
+<button class="btn primary" onclick="createCode()">Create</button>
+
+<h3>Add Event</h3>
+<input id="event" placeholder="Event Name">
+<button class="btn primary" onclick="addEvent()">Add</button>
+
+<h3>Change Password</h3>
+<input id="newPass" placeholder="New Password">
+<button class="btn primary" onclick="changePass()">Save</button>
+
 </div>
 
-<div id="admin" class="page">
-    <div class="card">
-        <h2>Admin</h2>
-        <input type="password" placeholder="Password"><br><br>
-        <button>Login</button>
-    </div>
-    <button onclick="goHome()">Back</button>
-</div>
+<button onclick="back()">Back</button>
+</section>
 
 <script>
-function showPage(id){
+
+let events = [];
+
+/* NAV */
+function openPage(id){
     document.getElementById("home").style.display="none";
-
-    document.querySelectorAll(".page").forEach(page=>{
-        page.style.display="none";
-    });
-
+    document.querySelectorAll("section").forEach(s=>s.style.display="none");
     document.getElementById(id).style.display="block";
 }
 
-function goHome(){
-    document.querySelectorAll(".page").forEach(page=>{
-        page.style.display="none";
-    });
-
+function back(){
+    document.querySelectorAll("section").forEach(s=>s.style.display="none");
     document.getElementById("home").style.display="block";
 }
+
+/* BOOKING */
+function submitBooking(){
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+
+    if(!name || !email || !phone){
+        alert("Fill all fields");
+        return;
+    }
+
+    document.getElementById("bookMsg").innerText =
+    "Booking submitted. We will contact you.";
+}
+
+/* GALLERY */
+function loadGallery(){
+    const code = document.getElementById("code").value;
+    const data = JSON.parse(localStorage.getItem(code));
+
+    const view = document.getElementById("galleryView");
+    view.innerHTML="";
+
+    if(!data){
+        view.innerHTML="No gallery found";
+        return;
+    }
+
+    data.forEach(img=>{
+        let i = document.createElement("img");
+        i.src = img;
+        view.appendChild(i);
+    });
+}
+
+/* ADMIN LOGIN */
+function login(){
+    const pass = document.getElementById("pass").value;
+    const saved = localStorage.getItem("adminPass") || "Cambros2025";
+
+    if(pass === saved){
+        document.getElementById("loginBox").style.display="none";
+        document.getElementById("adminPanel").style.display="block";
+    } else {
+        alert("Wrong password");
+    }
+}
+
+/* CREATE GALLERY */
+function createCode(){
+    const code = document.getElementById("newCode").value;
+    localStorage.setItem(code, JSON.stringify([]));
+    alert("Gallery created: " + code);
+}
+
+/* EVENTS */
+function addEvent(){
+    const e = document.getElementById("event").value;
+    events.push(e);
+
+    document.getElementById("eventList").innerHTML =
+    events.map(x=>"<li>"+x+"</li>").join("");
+}
+
+/* PASSWORD CHANGE */
+function changePass(){
+    const newPass = document.getElementById("newPass").value;
+    localStorage.setItem("adminPass", newPass);
+    alert("Password updated");
+}
+
 </script>
 
 </body>
